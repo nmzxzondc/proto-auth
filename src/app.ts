@@ -1,6 +1,7 @@
+import {PrometheusUpdater} from "./PrometheusUpdater"
+import {ObfuscateLuau} from "./obfuscateLuau";
 import {jwtManager} from "./jwtManager";
 import path from 'node:path';
-import {ObfuscateLuau} from "./obfuscateLuau";
 
 import express from 'express';
 const app = express();
@@ -65,8 +66,17 @@ app.get('/api/script', (req, res) => {
 
 app.listen(port, () => {
     console.log(`running on port http://localhost:${port}`);
-    setInterval(function () {
-        let script = new ObfuscateLuau()
-        script.obfuscateAll()
-    }, 12 * 1000);
+
+    let updater = new PrometheusUpdater()
+    let script = new ObfuscateLuau()
+
+    updater.update().then(function() {
+        setInterval(function () {
+            script.obfuscateAll()
+        }, 12 * 1000);
+    })
+
+
+
+
 })
