@@ -1,6 +1,6 @@
 import {PrometheusUpdater} from "./PrometheusUpdater"
 import {ObfuscateLuau} from "./obfuscateLuau";
-import {jwtManager} from "./jwtManager";
+import {keyManager} from "./KeyManager";
 import path from 'node:path';
 
 import express from 'express';
@@ -29,15 +29,13 @@ app.post('/api/generate', (req, res) => {
     }
 
 
-    let new_gen = new jwtManager()
-    let token = new_gen.generate("hwid")
+    let gen = new keyManager()
+    let token = gen.generate_sha256(hwid) // or gen.generate_jwt(hwid)
     res.send(token)
 })
 
 
 app.get('/api/script', (req, res) => {
-    let reqBody = req.body;
-
     if (!req.body) {
         res.status(400).send({})
         return;
@@ -48,19 +46,23 @@ app.get('/api/script', (req, res) => {
     let authHeader = req.headers['authorization']!;
     let userAgent = req.headers['user-agent']!;
 
-
-
-    let new_gen = new jwtManager();
-    let validToken = new_gen.validate(authHeader, hwid)
-
-    if (!authHeader || !validToken) {
-        res.status(403).send('Not authorized');
+    if (userAgent.includes("Mozilla")) {
+        return res.status(403).send('Not authorized');
     }
 
+    if (!file || !hwid) {
+        return res.status(400).send('Bad request');
+    }
 
-    let script = new ObfuscateLuau()
-    script.obfuscate("test.luau")
-    res.sendFile(path.resolve("./files/test.luau"))
+    let gen = new keyManager();
+    let validKey = gen.validate_sha256(authHeader, hwid) // or gen.validate_jwt(authHeader, hwid)
+
+    if (!authHeader || !validKey) {
+
+        return res.status(403).send('Not authorized');
+    }
+
+    res.sendFile(path.resolve("./files/" + file + ".luau.obfuscated.lua"))
 })
 
 

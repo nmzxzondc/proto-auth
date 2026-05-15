@@ -2,7 +2,7 @@ const latest_release_api = "https://api.github.com/repos/prometheus-lua/Promethe
 const prometheus_repo_path = "https://github.com/prometheus-lua/Prometheus.git";
 const prome_version_file = "./prome-ver.txt"
 const prometheus_folder = "./Prometheus/"
-import { simpleGit, SimpleGit, CleanOptions,SimpleGitOptions } from 'simple-git';
+import { simpleGit,SimpleGitOptions } from 'simple-git';
 import fetch from "node-fetch";
 import path from 'node:path';
 import fs from 'fs';
@@ -45,7 +45,6 @@ export class PrometheusUpdater {
             let release = res.tag_name;
 
             const prome_exists = fs.existsSync(prometheus_folder);
-            console.log(prome_exists)
 
             if (!prome_exists) {
                 console.log("Downloading Prometheus");
@@ -62,6 +61,7 @@ export class PrometheusUpdater {
                 }
 
                 if (data == release) {
+                    console.log("Prometheus up to date!");
                     return
                 }
 
@@ -72,12 +72,8 @@ export class PrometheusUpdater {
                         console.error(err);
                     }
                 })
+
             })
-
-
-
-
-
         } catch (error) {
             console.error(error);
         }
